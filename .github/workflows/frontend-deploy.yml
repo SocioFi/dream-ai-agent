@@ -1,0 +1,41 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+    
+    - name: Install Dependencies
+      run: |
+        cd frontend
+        npm install --legacy-peer-deps
+    
+    - name: Build
+      run: |
+        cd frontend
+        npm run build
+      env:
+        NEXT_PUBLIC_API_URL: 'https://dream-ai-backend.azurewebsites.net'
+    
+    - name: Deploy
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'dream-ai-frontend'
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_FRONTEND }}
+        package: './frontend'
+
+env:
+  AZURE_WEBAPP_NAME: dream-ai-frontend
